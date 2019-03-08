@@ -1,0 +1,93 @@
+---
+title: "Haviland HW 2"
+author: "Fionnuala McPeake"
+date: "March 8, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readr)
+Maybe_Normal <- read.table("Maybe_Normal.txt", quote="\"", comment.char="")
+Maybe_Uniform <- read.table("Maybe_Uniform.txt", quote="\"", comment.char="")
+norm_sample <- readRDS("norm_sample.Rdata")
+```
+
+# 1
+It's difficult to say if this is uniform or not, because there are so few points. It cannot be dismissed as non uniform. I do not believe that the provided step function fits the data better than the uniform distribution.
+```{r}
+maybe.uniform <- gather(Maybe_Uniform, var, val, V1:V5)
+hist(maybe.uniform$val)
+plot(ecdf(maybe.uniform$val))
+```
+
+# 2
+The distribution seems to be normally distributed, as shown by the histogram. Because the qq norm plot is pretty straight, it is pretty consistant with the normal distribution. It also has a mean and variance very close to what was stated in the problem. 
+```{r}
+maybe.normal <- gather(Maybe_Normal, var, val, V1:V5)
+hist(maybe.normal$val)
+mean(maybe.normal$val)
+var(maybe.normal$val)
+qqnorm(maybe.normal$val)
+```
+
+# 3
+Every time I try to import the text file, the negatives turn into "a^^"s. So I'll write it out myself.
+
+They are not from the same distribution, and Y is not from the same distribution as X+2. 
+```{r}
+maybe_same_1 <- c(0.61, 0.29, 0.06, 0.59, -1.73, -0.74, 0.51, -0.56, -0.39, 1.64, 0.05, -0.06, 0.64, -0.82, 0.31, 1.77, 1.09, -1.28, 2.36, 1.31, 1.05, -0.32, -0.40, 1.06, -2.47)
+
+maybe_same_2 <- c(2.20, 1.66, 1.38, 0.20,0.36, 0.00, 0.96, 1.56, 0.44, 1.50, -0.30, 0.66, 2.31, 3.29, -0.27, -0.37, 0.38, 0.70, 0.52, -0.71)
+
+hist(maybe_same_1)
+hist(maybe_same_2)
+
+X <- maybe_same_1 + 2
+hist(X)
+```
+
+
+# 4
+The D statistic is 0.17, with a p-value of 0.5784. Thus the norm_sample is indeed from the standard normal distribution. 
+```{r}
+plot(ecdf(norm_sample))
+set.seed(1)
+q4 <- rnorm(100, mean = 0, 1)
+ks.test(norm_sample, q4)
+```
+
+# 5
+```{r}
+library(boot)
+
+f<-ecdf(quakes$mag) 
+plot(f)
+alpha <- 0.05
+n <- length(quakes$depth)
+epsn<-sqrt(log(2/alpha)/(2*n))
+r<-max(quakes$depth)-min(quakes$depth)
+grid<-seq(from=min(quakes$depth)-0.01*r,to=max(quakes$depth)+0.01*r,l=1000)
+low.cdf<-pmax(f(grid)-epsn,0)
+up.cdf<-pmin(f(grid)+epsn,1)
+lines(grid,low.cdf,col="red")
+lines(grid,up.cdf,col="red")
+
+u<-ecdf(faithful$waiting) 
+plot(u)
+alpha <- 0.05
+n <- length(faithful$waiting)
+epsn<-sqrt(log(2/alpha)/(2*n))
+r<-max(faithful$waiting)-min(faithful$waiting)
+grid<-seq(from=min(faithful$waiting)-0.01*r,to=max(faithful$waiting)+0.01*r,l=1000)
+low.cdf<-pmax(u(grid)-epsn,0)
+up.cdf<-pmin(u(grid)+epsn,1)
+lines(grid,low.cdf,col="red")
+lines(grid,up.cdf,col="red")
+
+median(faithful$waiting)
+t.test(faithful$waiting, conf.level = 0.9)
+
+f(4.9) - f(4.3)
+```
